@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Strategy Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button class="btn-toolbar" id="btn-new" title="New Strategy (Ctrl+N)">New</button>
+        <button class="btn-toolbar" id="btn-delete" title="Delete Strategy (Del)">Delete</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Left Panel - Strategy List -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <span>Strategies</span>
+                <input type="text" id="search-input" placeholder="Search..." autocomplete="off">
+            </div>
+            <div class="strategy-list" id="strategy-list">
+                <!-- Strategies will be populated here -->
+            </div>
+        </div>
+
+        <!-- Right Panel - Strategy Details View -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <span id="details-title">Strategy Details</span>
+                <button class="btn-edit" id="btn-edit" style="display: none;">Edit</button>
+            </div>
+            <div id="strategy-details" class="strategy-details">
+                <div class="no-selection">
+                    <p>Select a strategy from the list to view details</p>
+                    <p>Double-click to view in modal or use the Edit button</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Strategy Details -->
+    <div id="strategy-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Strategy Details</span>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-toolbar">
+                    <button class="btn-modal" id="btn-visual-view" data-active="true">Visual View</button>
+                    <button class="btn-modal" id="btn-json-view">Raw JSON</button>
+                </div>
+                <div id="modal-content-visual" class="modal-view">
+                    <!-- Visual content will be populated here -->
+                </div>
+                <div id="modal-content-json" class="modal-view" style="display: none;">
+                    <pre id="json-display"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for New/Edit Strategy -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <span class="modal-title" id="edit-modal-title">New Strategy</span>
+                <button class="modal-close" id="edit-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="strategy-form" class="strategy-form">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" maxlength="80" autocomplete="off" required>
+                        <div class="error-message" id="name-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" maxlength="800" rows="3"
+                            autocomplete="off"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags">Tags (comma-separated)</label>
+                        <input type="text" id="tags" name="tags" autocomplete="off"
+                            placeholder="trend, swing, scalping">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeframes">Timeframes (comma-separated)</label>
+                        <input type="text" id="timeframes" name="timeframes" autocomplete="off"
+                            placeholder="1H, 4H, 1D">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="indicators">Indicators (comma-separated)</label>
+                        <input type="text" id="indicators" name="indicators" autocomplete="off"
+                            placeholder="EMA50, RSI, MACD">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="entry_rules">Entry Rules (one per line)</label>
+                        <textarea id="entry_rules" name="entry_rules" rows="3" autocomplete="off"
+                            placeholder="Price above EMA50&#10;RSI > 50"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exit_rules">Exit Rules (one per line)</label>
+                        <textarea id="exit_rules" name="exit_rules" rows="3" autocomplete="off"
+                            placeholder="Take profit at resistance&#10;Trail stop with ATR"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stoploss_rule">Stop Loss Rule</label>
+                            <input type="text" id="stoploss_rule" name="stoploss_rule" autocomplete="off"
+                                placeholder="2 x ATR(14)">
+                        </div>
+                        <div class="form-group">
+                            <label for="takeprofit_rule">Take Profit Rule</label>
+                            <input type="text" id="takeprofit_rule" name="takeprofit_rule" autocomplete="off"
+                                placeholder="R:R 1:2">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="position_size_rule">Position Size Rule</label>
+                        <input type="text" id="position_size_rule" name="position_size_rule" autocomplete="off"
+                            placeholder="Risk 1% equity">
+                    </div>
+
+                    <!-- Management Options -->
+                    <fieldset class="management-section">
+                        <legend>Management Options</legend>
+
+                        <div class="management-option">
+                            <input type="checkbox" id="trailing_stop_enabled" name="trailing_stop_enabled">
+                            <label for="trailing_stop_enabled">Trailing Stop</label>
+                            <input type="number" id="trailing_stop_multiplier" name="trailing_stop_multiplier"
+                                step="0.1" placeholder="1.5" autocomplete="off" class="multiplier-input">
+                            <span class="multiplier-label">x multiplier</span>
+                        </div>
+
+                        <div class="management-option">
+                            <input type="checkbox" id="scale_out_enabled" name="scale_out_enabled">
+                            <label for="scale_out_enabled">Scale Out</label>
+                            <input type="number" id="scale_out_percent" name="scale_out_percent" min="1" max="100"
+                                placeholder="50" autocomplete="off" class="percent-input">
+                            <span class="percent-label">% first exit</span>
+                        </div>
+
+                        <div class="management-option">
+                            <input type="checkbox" id="dca_enabled" name="dca_enabled">
+                            <label for="dca_enabled">Dollar Cost Averaging (DCA)</label>
+                        </div>
+
+                        <div class="management-option">
+                            <input type="checkbox" id="manual_enabled" name="manual_enabled">
+                            <label for="manual_enabled">Manual Management</label>
+                        </div>
+                    </fieldset>
+
+                    <div class="modal-form-buttons">
+                        <button type="button" class="btn-modal" id="btn-save-strategy">Save</button>
+                        <button type="button" class="btn-modal" id="btn-cancel-edit">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast for Undo -->
+    <div id="undo-toast" class="toast">
+        <span id="undo-message"></span>
+        <button id="undo-btn" class="btn-undo">Undo</button>
+    </div>
+
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
